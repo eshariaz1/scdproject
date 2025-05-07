@@ -1,0 +1,58 @@
+name: Build and Deploy to Minikube
+
+on:
+  push:
+    branches:
+      - master  # Trigger the workflow on push to the master branch
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+      
+    - name: Login to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: eshariaz1  # Your Docker Hub username
+        password: bangomen1  # Your Docker Hub password
+
+    - name: Build and push Backend Docker image
+      uses: docker/build-push-action@v4
+      with:
+        context: .  # Assuming your Backend is in the root folder, otherwise specify the correct path
+        file: ./backend/Dockerfile  # Correct path to your Dockerfile
+        push: true
+        tags: eshariaz1/backend:latest  # Use your Docker Hub username
+
+    - name: Build and push Frontend Docker image
+      uses: docker/build-push-action@v4
+      with:
+        context: .  # Assuming your Frontend is in the root folder
+        file: ./frontend/Dockerfile  # Correct path to your Dockerfile
+        push: true
+        tags: eshariaz1/frontend:latest  # Use your Docker Hub username
+
+    - name: Set up Minikube
+      uses: medyagh/setup-minikube@latest
+
+    - name: Install kubectl
+      run: |
+        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+        chmod +x kubectl
+        sudo mv kubectl /usr/local/bin/
+        kubectl version --client
+        echo "PATH=$PATH:/usr/local/bin" >> $GITHUB_ENV
+
+    - name: Deploy to Minikube
+      run: |
+        minikube status
+        kubectl apply -f mongo.yaml  # Ensure correct path to your mongo.yaml
+        kubectl apply -f deployment.yaml  # Ensure correct path to your deployment.yaml
+        kubectl apply -f service.yaml  # Ensure correct path to your service.yaml
+        kubectl get pods  # Verify pods are running

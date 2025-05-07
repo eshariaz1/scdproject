@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: task-mongo-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: task-app-mongo  # Ensure the label matches the service
+  template:
+    metadata:
+      labels:
+        app: task-app-mongo  # Ensure the label matches the service
+    spec:
+      containers:
+        - name: mongo
+          image: mongo:latest  # MongoDB container image
+          ports:
+            - containerPort: 27017  # Expose MongoDB port
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: task-mongo-service  # Service name for MongoDB
+spec:
+  selector:
+    app: task-app-mongo  # Ensure the service selects the correct app label
+  ports:
+    - port: 27017  # Service port to expose
+      targetPort: 27017  # Target port for the MongoDB container
+  type: ClusterIP  # ClusterIP is the default and works well for internal communication

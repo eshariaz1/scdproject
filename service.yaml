@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: task-backend-service
+spec:
+  selector:
+    app: task-app
+  ports:
+    - name: backend-port
+      port: 5000
+      targetPort: 5000
+      nodePort: 30007
+  type: NodePort
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: task-frontend-service
+spec:
+  selector:
+    app: task-app
+  ports:
+    - name: frontend-port
+      port: 80  # Changed to 80 for Nginx
+      targetPort: 80  # Changed to 80 for Nginx
+      nodePort: 30008
+  type: NodePort
